@@ -64,6 +64,9 @@ begin
             this_typedef_objectid              = this_typedef["ObjectID"]
             this_typedef_name                  = this_typedef["Name"]
             attribute_defs                     = this_typedef["Attributes"]
+            
+            type_has_revision_date = attribute_defs.any? { |attribute| attribute["ElementName"] == "LastUpdateDate" }
+            
             attribute_defs.each do | this_attribute_def |
 
                 this_attribute_def_workspace   = this_typedef["Workspace"]
@@ -112,13 +115,19 @@ begin
                 if this_attribute_def_iscustom && this_attribute_def["Filterable"] && !this_attribute_def["ReadOnly"] && this_attribute_def_type != "BOOLEAN" then
 
                     puts "Getting occurrences for #{this_type}.#{this_attribute_def['ElementName']}..."
+                    
+                    #need to account for types that do not have a "LastUpdateDate" for demonstrating the last time a record was modified with an occurrence
+                    #if the field doesn't exist, use the CreationDate
+                    occurrence_date_field = type_has_revision_date ? "LastUpdateDate" : "CreationDate"
+                    
 
                     occurrence_query                          = RallyAPI::RallyQuery.new()
                     occurrence_query.type                     = this_type
                     occurrence_query.workspace                = @rally.rally_default_workspace
                     occurrence_query.page_size                = 1
-                    occurrence_query.fetch                    = "LastUpdateDate"
-                    occurrence_query.order                    = "LastUpdateDate Desc"
+                    occurrence_query.limit                    = 1
+                    occurrence_query.fetch                    = occurrence_date_field
+                    occurrence_query.order                    = "#{occurrence_date_field} Desc" 
 
                     occurrence_query.query_string = this_attribute_def_type != "MULTI_VALUE" ? "(#{this_attribute_def['ElementName']} != null)" : "(#{this_attribute_def['ElementName']} !contains null)"
 
@@ -128,7 +137,12 @@ begin
 
                     if occurrences_count > 0 then
                         last_occurrence = occurrences[0]
-                        occurrence_last_modified = last_occurrence.LastUpdateDate
+                        
+                        #if we can't use LastUpdateDate, then we can't report on last modified occurrence
+                        if type_has_revision_date then
+                            occurrence_last_modified = last_occurrence.LastUpdateDate
+                        end
+                        
                         puts "#{this_type}.#{this_attribute_def['ElementName']} - Occurrences: #{occurrences_count}; Last Modified Occurrence: #{last_occurrence} on #{occurrence_last_modified}"
                     end
                 end

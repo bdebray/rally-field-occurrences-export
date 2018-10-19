@@ -25,10 +25,31 @@ Ensure ruby is installed. The script requires the following gems:
    - **artifact_types** (Required): List all work item/object types to be included in the output
 3. Open terminal/console, navigate to the downloaded/cloned directory and run `ruby rally_field_occurrences.rb`
 
+### Output
+
+The .csv will contain the following data:
+
+| Field/Heading          | Description                                                                                                                |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Workspace              | Name of the workspace that contains the field definition                                                                   |
+| ArtifactType           | Type for the field definition (i.e. User Story, PortfolioItem, Defect)                                                     |
+| TypeDefOID             | Object ID for the type; can be used to reference in the Web Services API                                                   |
+| AttrDefOID             | Object ID for the field; can be used to reference in the Web Services API                                                  |
+| AttrDefName            | Display Name of the field                                                                                                  |
+| AttrDefType            | Type of the field (i.e. Text, Date, Drop-Down, etc.)                                                                       |
+| Hidden                 | Whether the field is hidden for the workspace (note: not project-specific)                                                 |
+| Required               | Whether the field is required                                                                                              |
+| Custom                 | Whether the field is custom                                                                                                |
+| AttrCreatedOn          | When the field was created                                                                                                 |
+| Occurrences            | How many records for the artifact type have a value for the field (custom fields only; see limitations)                    |
+| OccurrenceLastModified | The last time a record for the artifact type was modified with a value for the field (custom fields only; see limitations) |
+| AllowedValues          | A list of values allowed for the field; specifically, drop down and multi-value drop down fields                           |
+
 ### Known Limitations
 
 - Any custom fields that are not queryable in the WebServices API will not include occurrence data.
 - Any custom boolean fields will not include occurrence data.
+- Any types that do not have a LastUpdateDate field will not include OccurrenceLastModified values for the occurrence data
 
 ### References and Recognitions
 
